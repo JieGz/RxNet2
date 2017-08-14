@@ -3,6 +3,8 @@ package com.jgz.rxnet2;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
+import java.io.IOException;
+import java.util.HashSet;
 import java.util.concurrent.TimeUnit;
 
 import io.reactivex.Observable;
@@ -11,7 +13,10 @@ import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
+import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
@@ -64,9 +69,9 @@ public class RxNet {
     private static OkHttpClient client = new OkHttpClient.Builder()
             //添加interceptor,日志拦截器
             .addInterceptor(interceptor)
-            .addInterceptor(new CookiesInterceptor())
-            // .addInterceptor(new ReceivedCookiesInterceptor())
-            // .addInterceptor(new AddCookiesInterceptor())
+            //.addInterceptor(new CookiesInterceptor())
+            .addInterceptor(new ReceivedCookiesInterceptor())
+            .addInterceptor(new AddCookiesInterceptor())
             //设置连接超时的时间
             .connectTimeout(10L, TimeUnit.SECONDS)
             //设置读取超时的时间
@@ -112,51 +117,51 @@ public class RxNet {
     }
 
 
-//    private static HashSet<String> mCookies = new HashSet<>();
-//
-//    /**
-//     * 将服务器Cookies保存起来
-//     */
-//    private static class ReceivedCookiesInterceptor implements Interceptor {
-//
-//        @Override
-//        public Response intercept(@NonNull Chain chain) throws IOException {
-//
-//            Response originalResponse = chain.proceed(chain.request());
-//
-//            if (!originalResponse.headers("Set-Cookie").isEmpty()) {
-//                HashSet<String> cookies = new HashSet<>();
-//
-//                for (String header : originalResponse.headers("Set-Cookie")) {
-//                    cookies.add(header);
-//                }
-//
-//                mCookies = cookies;
-//            }
-//
-//            return originalResponse;
-//        }
-//    }
-//
-//    /**
-//     * 将Cookies传递给服务器
-//     */
-//    private static class AddCookiesInterceptor implements Interceptor {
-//
-//        @Override
-//        public Response intercept(@NonNull Chain chain) throws IOException {
-//            Request.Builder builder = chain.request().newBuilder();
-//
-//            HashSet<String> preferences = mCookies;
-//
-//            for (String cookie : preferences) {
-//                builder.addHeader("Cookie", cookie);
-//                Log.v("OkHttp", "Adding Header: " + cookie);
-//            }
-//
-//            return chain.proceed(builder.build());
-//        }
-//    }
+    private static HashSet<String> mCookies = new HashSet<>();
+
+    /**
+     * 将服务器Cookies保存起来
+     */
+    private static class ReceivedCookiesInterceptor implements Interceptor {
+
+        @Override
+        public Response intercept(@NonNull Chain chain) throws IOException {
+
+            Response originalResponse = chain.proceed(chain.request());
+
+            if (!originalResponse.headers("Set-Cookie").isEmpty()) {
+                HashSet<String> cookies = new HashSet<>();
+
+                for (String header : originalResponse.headers("Set-Cookie")) {
+                    cookies.add(header);
+                }
+
+                mCookies = cookies;
+            }
+
+            return originalResponse;
+        }
+    }
+
+    /**
+     * 将Cookies传递给服务器
+     */
+    private static class AddCookiesInterceptor implements Interceptor {
+
+        @Override
+        public Response intercept(@NonNull Chain chain) throws IOException {
+            Request.Builder builder = chain.request().newBuilder();
+
+            HashSet<String> preferences = mCookies;
+
+            for (String cookie : preferences) {
+                builder.addHeader("Cookie", cookie);
+                Log.v("OkHttp", "Adding Header: " + cookie);
+            }
+
+            return chain.proceed(builder.build());
+        }
+    }
 
 
 }

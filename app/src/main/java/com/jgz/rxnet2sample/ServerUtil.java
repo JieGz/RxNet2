@@ -38,7 +38,6 @@ public class ServerUtil {
             }
             return sb.toString();
         } catch (NoSuchAlgorithmException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
 
