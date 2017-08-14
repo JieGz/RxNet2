@@ -28,7 +28,7 @@ public abstract class NetObserver<T> implements Observer<T> {
 
     @Override
     public void onError(@NonNull Throwable e) {
-        onErrored(e);
+        onErrored(new Error("请查检网络"));
     }
 
     @Override
