@@ -2,6 +2,7 @@ package com.jgz.rxnet2sample;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -11,8 +12,14 @@ import com.jgz.rxnet2.HttpResult;
 import com.jgz.rxnet2.NetObserver;
 import com.jgz.rxnet2.RxNet;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+
+import io.reactivex.Observable;
+import io.reactivex.ObservableOnSubscribe;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
+import io.reactivex.schedulers.Schedulers;
 
 public class MainActivity extends AppCompatActivity {
     private Button mTextBt;
@@ -42,9 +49,33 @@ public class MainActivity extends AppCompatActivity {
         mResultBt.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                disposable.dispose();
+                //disposable.dispose();
             }
         });
+
+        Observable<String> observable = Observable.create((ObservableOnSubscribe<String>) emitter -> {
+            String ipAddress = GetInetAddress("api.ns002.com");
+            Log.d("<Je>", "onObservable: " + ipAddress);
+            emitter.onNext(ipAddress);
+        }).subscribeOn(Schedulers.io());
+        Consumer<String> onNext = ipAddress -> Log.d("<Je>", "onNext: " + ipAddress);
+        observable.subscribe(onNext);
+
+
+    }
+
+
+    public String GetInetAddress(String host) {
+        String IPAddress = "";
+        InetAddress ReturnStr1;
+        try {
+            ReturnStr1 = InetAddress.getByName(host);
+            IPAddress = ReturnStr1.getHostAddress();
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+            return IPAddress;
+        }
+        return IPAddress;
     }
 
     private Disposable disposable;

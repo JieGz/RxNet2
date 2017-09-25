@@ -18,6 +18,7 @@ public interface Api {
     @POST("/app/timeout")
     Observable<HttpResult<loginData>> loginApp(@Body Object json);
 
+
     class Wrapper {
         public static Observable<HttpResult<loginData>> loginApp(@Body Object json) {
             return RxNet.getService(Api.class).loginApp(json);

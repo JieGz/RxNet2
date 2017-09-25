@@ -10,7 +10,7 @@ import com.jgz.rxnet2.RxNet;
 
 public class App extends Application {
     // public final String BASE_URL = "http://dev.wangou.ns002.com/";
-    public final String BASE_URL = "http://192.168.1.164:8080/";
+    public final String BASE_URL = "http://api.ns002.com/";
 
     @Override
     public void onCreate() {
