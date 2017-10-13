@@ -1,9 +1,6 @@
 package com.jgz.rxnet2.interceptor;
 
-import java.io.ByteArrayOutputStream;
-import java.io.Closeable;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.nio.charset.Charset;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
@@ -124,7 +121,7 @@ public class HttpLogginInterceptor implements Interceptor {
                         Buffer buffer = bufferedSource.buffer();
                         log("\tRequestBody:" + buffer.readString(getCharset(responseBody.contentType())));
 
-                        log("<-- END HTTP ("+ buffer.size()+"-byte body )");
+                        log("<-- END HTTP (" + buffer.size() + "-byte body )");
                         return response;
                     } else {
                         log("\tRequestBody: maybe [binary body], omitted!");//4:打印响应正文,为二进制情况
@@ -236,7 +233,6 @@ public class HttpLogginInterceptor implements Interceptor {
         BASIC,      //只打印 请求首行 和 响应首行
         HEADERS,    //打印请求和响应的所有 Header
         BODY;        //所有数据全部打印
-
         Level() {
         }
     }
