@@ -1,7 +1,11 @@
 package com.jgz.rxnet2.interceptor;
 
+import java.io.ByteArrayOutputStream;
+import java.io.Closeable;
 import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.nio.charset.Charset;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 import okhttp3.Connection;
@@ -12,7 +16,10 @@ import okhttp3.Protocol;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
+import okhttp3.ResponseBody;
+import okhttp3.internal.http.HttpHeaders;
 import okio.Buffer;
+import okio.BufferedSource;
 
 /**
  * ================================================
@@ -75,7 +82,61 @@ public class HttpLogginInterceptor implements Interceptor {
         //拦截请求日志
         inteceptRequestLog(request, chain.connection());
 
-        return chain.proceed(request);
+        //执行请求，计算请求时间
+        long startNs = System.nanoTime();
+        Response response;
+        try {
+            response = chain.proceed(request);
+        } catch (Exception e) {
+            log("<-- HTTP FAILED: " + e);
+            throw e;
+        }
+        long tookMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startNs);
+
+        return logForResponse(response, tookMs);
+    }
+
+    private Response logForResponse(Response response, long tookMs) {
+        Response.Builder builder = response.newBuilder();
+        Response cloneResponse = builder.build();
+        ResponseBody responseBody = cloneResponse.body();
+        boolean isLogBody = httpLevel == Level.BODY;
+        boolean isLogHeaders = isLogBody || httpLevel == Level.HEADERS;
+
+        String responseLineMessage = "<-- " + cloneResponse.code() + " " + cloneResponse.message() + " " + cloneResponse.request().url() + " (" + tookMs + "ms)";
+        log(responseLineMessage);//1:输出响应的状态行
+
+        try {
+            if (isLogHeaders) {
+                Headers headers = cloneResponse.headers();
+                int count = headers.size();
+                for (int i = 0; i < count; ++i) {
+                    log("\t" + headers.name(i) + ": " + headers.value(i)); //2:打印消息报头
+                }
+                //3:打印空行(因为这是一个标准Http协议,空行不能少)
+                log(" ");
+
+                if (isLogBody && HttpHeaders.hasBody(cloneResponse)) {//如果日志方式需要打印响应正文,并且http响应中有响应正文的话,打印响应正文
+                    if (isPlaintext(responseBody.contentType())) {
+
+                        BufferedSource bufferedSource = responseBody.source();
+                        bufferedSource.request(9223372036854775807L);//用于服务器异常的情况!
+                        Buffer buffer = bufferedSource.buffer();
+                        log("\tRequestBody:" + buffer.readString(getCharset(responseBody.contentType())));
+
+                        log("<-- END HTTP ("+ buffer.size()+"-byte body )");
+                        return response;
+                    } else {
+                        log("\tRequestBody: maybe [binary body], omitted!");//4:打印响应正文,为二进制情况
+                    }
+                }
+            }
+        } catch (Exception e) {
+            //  e.printStackTrace();
+        } finally {
+            log("<-- END HTTP");
+        }
+        return response;
     }
 
 
@@ -123,7 +184,7 @@ public class HttpLogginInterceptor implements Interceptor {
             if (isPlaintext(requestBody.contentType())) {
                 bodyToString(request);
             } else {
-                log("\tRequestBody: maybe [binary body], omitted!"+ " (binary " + requestBody.contentLength() + "-byte body omitted)");
+                log("\tRequestBody: maybe [binary body], omitted!" + " (binary " + requestBody.contentLength() + "-byte body omitted)");
             }
         }
 
@@ -135,7 +196,7 @@ public class HttpLogginInterceptor implements Interceptor {
      * 如果是可读的文本,则返回true,否则返回flase
      * 注:比如请求体中包含的是一张图片的信息,那么就是不可能的状态
      */
-    private static boolean isPlaintext(MediaType mediaType) {
+    private boolean isPlaintext(MediaType mediaType) {
         if (mediaType == null) return false;
         if (mediaType.type() != null && mediaType.type().equals("text")) {
             return true;
@@ -157,27 +218,26 @@ public class HttpLogginInterceptor implements Interceptor {
             Buffer buffer = new Buffer();
             body.writeTo(buffer);
             Charset charset = getCharset(body.contentType());
-            log("\tRequestBody:" + buffer.readString(charset)+ " (" + body.contentLength() + "-byte body)");
+            log("\tRequestBody:" + buffer.readString(charset) + " (" + body.contentLength() + "-byte body)");
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    private static Charset getCharset(MediaType contentType) {
+    private Charset getCharset(MediaType contentType) {
         Charset charset = contentType != null ? contentType.charset(UTF8) : UTF8;
         if (charset == null) charset = UTF8;
         return charset;
     }
 
-
     //打印日志的级别
-    public static enum Level {
+    public enum Level {
         NONE,       //不打印log
         BASIC,      //只打印 请求首行 和 响应首行
         HEADERS,    //打印请求和响应的所有 Header
         BODY;        //所有数据全部打印
 
-        private Level() {
+        Level() {
         }
     }
 }

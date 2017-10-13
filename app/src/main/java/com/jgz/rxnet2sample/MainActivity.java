@@ -55,13 +55,10 @@ public class MainActivity extends AppCompatActivity {
 
         Observable<String> observable = Observable.create((ObservableOnSubscribe<String>) emitter -> {
             String ipAddress = GetInetAddress("api.ns002.com");
-            Log.d("<Je>", "onObservable: " + ipAddress);
             emitter.onNext(ipAddress);
         }).subscribeOn(Schedulers.io());
         Consumer<String> onNext = ipAddress -> Log.d("<Je>", "onNext: " + ipAddress);
         observable.subscribe(onNext);
-
-
     }
 
 

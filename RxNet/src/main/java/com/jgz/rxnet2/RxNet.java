@@ -70,6 +70,7 @@ public class RxNet {
      */
     private static OkHttpClient client = new OkHttpClient.Builder()
             //添加interceptor,日志拦截器
+            .addInterceptor(interceptor)
             .addInterceptor(new HttpLogginInterceptor("光智").setHttpLevel(HttpLogginInterceptor.Level.BODY))
             //.addInterceptor(new CookiesInterceptor())
             .addInterceptor(new ReceivedCookiesInterceptor())
