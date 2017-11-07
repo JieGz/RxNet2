@@ -89,11 +89,11 @@ public class HttpLogginInterceptor implements Interceptor {
             throw e;
         }
         long tookMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startNs);
-
         return logForResponse(response, tookMs);
     }
 
     private Response logForResponse(Response response, long tookMs) {
+
         Response.Builder builder = response.newBuilder();
         Response cloneResponse = builder.build();
         ResponseBody responseBody = cloneResponse.body();
@@ -119,19 +119,20 @@ public class HttpLogginInterceptor implements Interceptor {
                         BufferedSource bufferedSource = responseBody.source();
                         bufferedSource.request(9223372036854775807L);//用于服务器异常的情况!
                         Buffer buffer = bufferedSource.buffer();
-                        log("\tRequestBody:" + buffer.readString(getCharset(responseBody.contentType())));
+                        log("\tRequestBody:" + buffer.clone().readString(getCharset(responseBody.contentType())));//clone方法不能少!!!
 
                         log("<-- END HTTP (" + buffer.size() + "-byte body )");
                         return response;
                     } else {
                         log("\tRequestBody: maybe [binary body], omitted!");//4:打印响应正文,为二进制情况
+                        log("<-- END HTTP");
                     }
+                } else {
+                    log("<-- END HTTP");
                 }
             }
         } catch (Exception e) {
-            //  e.printStackTrace();
-        } finally {
-            log("<-- END HTTP");
+            e.printStackTrace();
         }
         return response;
     }
@@ -233,6 +234,7 @@ public class HttpLogginInterceptor implements Interceptor {
         BASIC,      //只打印 请求首行 和 响应首行
         HEADERS,    //打印请求和响应的所有 Header
         BODY;        //所有数据全部打印
+
         Level() {
         }
     }

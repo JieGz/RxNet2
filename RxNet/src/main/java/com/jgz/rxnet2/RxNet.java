@@ -1,12 +1,9 @@
 package com.jgz.rxnet2;
 
-import android.support.annotation.NonNull;
-import android.util.Log;
-
+import com.jgz.rxnet2.cookie.CookieManager;
+import com.jgz.rxnet2.cookie.store.MemoryCookieStore;
 import com.jgz.rxnet2.interceptor.HttpLogginInterceptor;
 
-import java.io.IOException;
-import java.util.HashSet;
 import java.util.concurrent.TimeUnit;
 
 import io.reactivex.Observable;
@@ -15,11 +12,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
-import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
-import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
@@ -32,17 +25,6 @@ public class RxNet {
     private static String mBaseUrl;
     private static volatile RxNet mRxNet;
 
-    /**
-     * 这个是日志拦截器
-     */
-    private static HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor(new HttpLoggingInterceptor.Logger() {
-        @Override
-        public void log(@NonNull String message) {
-            Log.i("RxNet", message);
-        }
-    });
-
-
     public static RxNet getDefault() {
         if (mRxNet == null) {
             synchronized (RxNet.class) {
@@ -54,14 +36,8 @@ public class RxNet {
         return mRxNet;
     }
 
-    public void init(String baseUrl, boolean isLog) {
+    public void init(String baseUrl) {
         mBaseUrl = baseUrl;
-
-        if (isLog) {
-            interceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
-        } else {
-            interceptor.setLevel(HttpLoggingInterceptor.Level.NONE);
-        }
     }
 
 
@@ -70,11 +46,9 @@ public class RxNet {
      */
     private static OkHttpClient client = new OkHttpClient.Builder()
             //添加interceptor,日志拦截器
-            .addInterceptor(interceptor)
             .addInterceptor(new HttpLogginInterceptor("光智").setHttpLevel(HttpLogginInterceptor.Level.BODY))
-            //.addInterceptor(new CookiesInterceptor())
-            .addInterceptor(new ReceivedCookiesInterceptor())
-            .addInterceptor(new AddCookiesInterceptor())
+            //cookie管理策略
+            .cookieJar(new CookieManager(new MemoryCookieStore()))
             //设置连接超时的时间
             .connectTimeout(10L, TimeUnit.SECONDS)
             //设置读取超时的时间
@@ -119,52 +93,8 @@ public class RxNet {
                 .subscribe(onNext, onError);
     }
 
-
-    private static HashSet<String> mCookies = new HashSet<>();
-
-    /**
-     * 将服务器Cookies保存起来
-     */
-    private static class ReceivedCookiesInterceptor implements Interceptor {
-
-        @Override
-        public Response intercept(@NonNull Chain chain) throws IOException {
-
-            Response originalResponse = chain.proceed(chain.request());
-
-            if (!originalResponse.headers("Set-Cookie").isEmpty()) {
-                HashSet<String> cookies = new HashSet<>();
-
-                for (String header : originalResponse.headers("Set-Cookie")) {
-                    cookies.add(header);
-                }
-
-                mCookies = cookies;
-            }
-
-            return originalResponse;
-        }
+    public static <T> Observable<T> beginRequest(Observable<T> observable) {
+        return observable.subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread());
     }
-
-    /**
-     * 将Cookies传递给服务器
-     */
-    private static class AddCookiesInterceptor implements Interceptor {
-
-        @Override
-        public Response intercept(@NonNull Chain chain) throws IOException {
-            Request.Builder builder = chain.request().newBuilder();
-
-            HashSet<String> preferences = mCookies;
-
-            for (String cookie : preferences) {
-                builder.addHeader("Cookie", cookie);
-                Log.v("OkHttp", "Adding Header: " + cookie);
-            }
-
-            return chain.proceed(builder.build());
-        }
-    }
-
-
 }
