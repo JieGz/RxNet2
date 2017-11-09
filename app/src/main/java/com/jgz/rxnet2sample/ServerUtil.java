@@ -13,6 +13,8 @@ import java.util.TreeMap;
 
 public class ServerUtil {
 
+    private static String app_secret = "f290ba094eb84e03a631c9976bed3990";
+
     /**
      * 加密算法
      *
@@ -42,7 +44,6 @@ public class ServerUtil {
     }
 
     public static TreeMap<String, Object> sign(String[] keys, Object[] vs) {
-        String APP_SECRET = "f290ba094eb84e03a631c9976bed3990";
         TreeMap<String, Object> tree = new TreeMap<>();
         TreeMap<String, Object> values = new TreeMap<>();
         if (keys != null && vs != null && keys.length == vs.length) {
@@ -51,11 +52,19 @@ public class ServerUtil {
             }
         }
         String valuesJson = new Gson().toJson(values);
-        tree.put("sign", encode(valuesJson + APP_SECRET));
+        tree.put("sign", encode(valuesJson + app_secret));
         tree.put("data", values);
         tree.put("os", "ANDROID");
         return tree;
     }
 
-
+    public static TreeMap<String, Object> sign() {
+        TreeMap<String, Object> tree = new TreeMap<>();
+        TreeMap<String, Object> values = new TreeMap<>();
+        String valuesJson = new Gson().toJson(values);
+        tree.put("sign", encode(valuesJson + app_secret));
+        tree.put("data", values);
+        tree.put("os", "ANDROID");
+        return tree;
+    }
 }

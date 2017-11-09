@@ -15,6 +15,6 @@ public class App extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-        RxNet.getDefault().init(BASE_URL);
+        RxNet.getDefault().init(this,BASE_URL);
     }
 }

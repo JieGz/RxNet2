@@ -1,7 +1,7 @@
 package com.jgz.rxnet2sample;
 
-import com.jgz.rxnet2.HttpResult;
 import com.jgz.rxnet2.RxNet;
+import com.jgz.rxnet2.http.HttpResult;
 
 import io.reactivex.Observable;
 
@@ -15,7 +15,14 @@ import io.reactivex.Observable;
  * ================================================
  */
 public class Api {
+
+    private static IConfig iConfig = RxNet.getDefault().getService(IConfig.class);
+
     public static Observable<HttpResult<loginData>> loginApp(String[] keys, Object[] vs) {
-        return RxNet.getService(IConfig.class).loginApp(ServerUtil.sign(keys, vs));
+        return iConfig.loginApp(ServerUtil.sign(keys, vs));
+    }
+
+    public static Observable<HttpResult> timeout() {
+        return iConfig.timeout(ServerUtil.sign());
     }
 }

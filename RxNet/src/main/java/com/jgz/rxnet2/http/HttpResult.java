@@ -1,4 +1,4 @@
-package com.jgz.rxnet2;
+package com.jgz.rxnet2.http;
 
 /**
  * Created by Je on 2017/8/8.
