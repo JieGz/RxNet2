@@ -42,11 +42,11 @@ public abstract class RxNetObserver<T> implements Observer<T> {
         if (e instanceof ApiException) {
             onErrored((ApiException) e);
         } else if (e instanceof UnknownHostException) {//没有网络
-            Toast.makeText(mContext, "请检查网络", Toast.LENGTH_SHORT).show();
+            Toast.makeText(mContext, "当前网络不可用,请检查你的网络设置", Toast.LENGTH_SHORT).show();
         } else if (e instanceof HttpException) {//404,地址不存在
             Toast.makeText(mContext, e.getMessage(), Toast.LENGTH_SHORT).show();
         } else if (e instanceof SocketTimeoutException) {//请求超时
-            Toast.makeText(mContext, "请求超时", Toast.LENGTH_SHORT).show();
+            Toast.makeText(mContext, "网络请求超时,请稍后再试", Toast.LENGTH_SHORT).show();
         }
     }
 
