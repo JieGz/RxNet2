@@ -8,7 +8,8 @@ import com.jgz.rxnet2.converter.RxNetGsonConverterFactory;
 import com.jgz.rxnet2.cookie.CookieManager;
 import com.jgz.rxnet2.cookie.store.MemoryCookieStore;
 import com.jgz.rxnet2.http.HttpResult;
-import com.jgz.rxnet2.interceptor.HttpLogginInterceptor;
+import com.jgz.rxnet2.interceptor.baseurl.RxNetOKHttpClient;
+import com.jgz.rxnet2.interceptor.log.HttpLogginInterceptor;
 import com.jgz.rxnet2.utils.RxNetUtil;
 
 import java.util.concurrent.TimeUnit;
@@ -36,9 +37,7 @@ public class RxNet {
     private static volatile RxNet mRxNet;
 
     private RxNet() {
-        okHttpClient = new OkHttpClient.Builder()
-                //添加interceptor,日志拦截器
-                .addInterceptor(new HttpLogginInterceptor().setHttpLevel(HttpLogginInterceptor.Level.BODY))
+        okHttpClient = RxNetOKHttpClient.getInstance().with(new OkHttpClient.Builder())
                 //cookie管理策略
                 .cookieJar(new CookieManager(new MemoryCookieStore()))
                 //设置连接超时的时间
@@ -47,7 +46,10 @@ public class RxNet {
                 .readTimeout(10L, TimeUnit.SECONDS)
                 //设置失败重连
                 .retryOnConnectionFailure(true)
+                //添加interceptor,日志拦截器
+                .addInterceptor(new HttpLogginInterceptor().setHttpLevel(HttpLogginInterceptor.Level.BODY))
                 .build();
+
     }
 
     public static RxNet getDefault() {

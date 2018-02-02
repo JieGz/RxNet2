@@ -1,5 +1,9 @@
 package com.jgz.rxnet2.utils;
 
+import com.jgz.rxnet2.interceptor.baseurl.InvalidUrlException;
+
+import okhttp3.HttpUrl;
+
 /**
  * ================================================
  * 作者:Je(揭光智)     联系方式:QQ:364049613
@@ -15,5 +19,15 @@ public class RxNetUtil {
             throw new NullPointerException(message);
         }
         return object;
+    }
+
+
+    public static HttpUrl checkUrl(String url) {
+        HttpUrl parseUrl = HttpUrl.parse(url);
+        if (null == parseUrl) {
+            throw new InvalidUrlException(url);
+        } else {
+            return parseUrl;
+        }
     }
 }
