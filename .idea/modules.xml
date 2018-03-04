@@ -3,9 +3,12 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/RxNet/RxNet.iml" filepath="$PROJECT_DIR$/RxNet/RxNet.iml" />
+      <module fileurl="file://D:\LearningTools\work\RxNet2\RxNet\RxNet.iml" filepath="D:\LearningTools\work\RxNet2\RxNet\RxNet.iml" />
       <module fileurl="file://$PROJECT_DIR$/RxNet2.iml" filepath="$PROJECT_DIR$/RxNet2.iml" />
       <module fileurl="file://C:\learingTools\learningProject\RxNet2\RxNet2\RxNet2.iml" filepath="C:\learingTools\learningProject\RxNet2\RxNet2\RxNet2.iml" />
+      <module fileurl="file://D:\LearningTools\work\RxNet2\RxNet2.iml" filepath="D:\LearningTools\work\RxNet2\RxNet2.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+      <module fileurl="file://D:\LearningTools\work\RxNet2\app\app.iml" filepath="D:\LearningTools\work\RxNet2\app\app.iml" />
     </modules>
   </component>
 </project>
