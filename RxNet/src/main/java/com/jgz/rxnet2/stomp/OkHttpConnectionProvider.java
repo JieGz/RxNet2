@@ -181,4 +181,8 @@ class OkHttpConnectionProvider implements ConnectionProvider {
             subscriber.onNext(stompMessage);
         }
     }
+
+    public WebSocket getOpenedSocked() {
+        return openedSocked;
+    }
 }

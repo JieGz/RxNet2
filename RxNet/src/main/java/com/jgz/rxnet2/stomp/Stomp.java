@@ -25,6 +25,7 @@ import okhttp3.OkHttpClient;
  * ================================================
  */
 public class Stomp {
+    private static OkHttpConnectionProvider connectionProvider;
 
     public static StompClient over(Class clazz, String uri) {
         return over(clazz, uri, null, null);
@@ -59,8 +60,8 @@ public class Stomp {
             if (Class.forName("okhttp3.WebSocket") != null && clazz == okhttp3.WebSocket.class) {
 
                 OkHttpClient okHttpClient = getOkHttpClient(webSocketClient);
-
-                return createStompClient(new OkHttpConnectionProvider(uri, connectHttpHeaders, okHttpClient));
+                connectionProvider = new OkHttpConnectionProvider(uri, connectHttpHeaders, okHttpClient);
+                return createStompClient(connectionProvider);
             }
         } catch (ClassNotFoundException e) {
         }
@@ -83,5 +84,9 @@ public class Stomp {
             // default http client
             return new OkHttpClient();
         }
+    }
+
+    public static void cancel() {
+        connectionProvider.getOpenedSocked().cancel();
     }
 }
