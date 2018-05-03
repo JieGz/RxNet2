@@ -1,4 +1,4 @@
-package com.jgz.rxnet2sample;
+package com.jgz.rxnet2sample.net.utils;
 
 import com.google.gson.Gson;
 

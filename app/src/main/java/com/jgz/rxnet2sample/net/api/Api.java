@@ -1,7 +1,9 @@
-package com.jgz.rxnet2sample;
+package com.jgz.rxnet2sample.net.api;
 
 import com.jgz.rxnet2.RxNet;
 import com.jgz.rxnet2.http.HttpResult;
+import com.jgz.rxnet2sample.net.utils.ServerUtil;
+import com.jgz.rxnet2sample.net.bean.loginData;
 
 import io.reactivex.Observable;
 

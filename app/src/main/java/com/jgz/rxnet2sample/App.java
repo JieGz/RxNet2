@@ -4,6 +4,7 @@ import android.app.Application;
 
 import com.jgz.rxnet2.RxNet;
 import com.jgz.rxnet2.interceptor.baseurl.RxNetOKHttpClient;
+import com.jgz.rxnet2sample.net.utils.RxNetOkHttpClientFactory;
 
 /**
  * Created by gdjie on 2017/8/9.
@@ -21,7 +22,7 @@ public class App extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-
-        RxNet.getDefault().init(this, BASE_URL);
+        RxNet.getDefault().init(this, BASE_URL).setOkHttpClient(RxNetOkHttpClientFactory.create());
     }
+
 }

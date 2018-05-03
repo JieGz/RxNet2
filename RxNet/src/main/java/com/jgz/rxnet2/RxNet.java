@@ -1,6 +1,5 @@
 package com.jgz.rxnet2;
 
-import android.app.Application;
 import android.content.Context;
 
 import com.jgz.rxnet2.consumer.RxNetErrorConsumer;
@@ -17,24 +16,28 @@ import java.util.concurrent.TimeUnit;
 import io.reactivex.Observable;
 import io.reactivex.Observer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.annotations.NonNull;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
-import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
 import okhttp3.OkHttpClient;
 import retrofit2.Retrofit;
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
 
 /**
- * Created by Je on 2017/8/8.
+ * ================================================
+ * 作者:T(揭光智)     联系方式:wechat/phone:13570578417
+ * 版本:
+ * 创建日期:2018/5/3
+ * 描述:
+ * 修订历史：
+ * ================================================
  */
 
 public class RxNet {
     private String mBaseUrl;
-    private static Application mContext;
+    private static Context mContext;
     private OkHttpClient okHttpClient;
-    private static volatile RxNet mRxNet;
+    private static volatile RxNet defaultInstance;
 
     private RxNet() {
         okHttpClient = RxNetOKHttpClient.getInstance().with(new OkHttpClient.Builder())
@@ -53,44 +56,47 @@ public class RxNet {
     }
 
     public static RxNet getDefault() {
-        if (mRxNet == null) {
+        RxNet instance = defaultInstance;
+        if (instance == null) {
             synchronized (RxNet.class) {
-                if (mRxNet == null) {
-                    mRxNet = new RxNet();
+                instance = defaultInstance;
+                if (instance == null) {
+                    instance = defaultInstance = new RxNet();
                 }
             }
         }
-        return mRxNet;
+        return instance;
     }
 
-    public RxNet init(Application context, String baseUrl) {
-        this.mContext = context;
-        mBaseUrl = baseUrl;
+    public RxNet init(Context context, String baseUrl) {
+        mContext = context;
+        this.mBaseUrl = baseUrl;
         return this;
     }
 
-    /**
-     * 必须设置
-     */
-    public RxNet setOkHttpClient(OkHttpClient okHttpClient) {
+    /**用户自定义OkHttpClien,主要是自定义请求超时间,是否重连,拦截器等操作*/
+    public void setOkHttpClient(OkHttpClient okHttpClient) {
         RxNetUtil.checkNotNull(okHttpClient, "okHttpClient == null");
         this.okHttpClient = okHttpClient;
-        return this;
     }
 
-    public static Context getContext() {
+    private static Context getContext() {
         return mContext;
     }
 
 
+    public void dismiss() {
+        defaultInstance = null;
+        mContext = null;
+    }
+
     /**
      * 获取一个网络请求公用的接口
      *
-     * @param clazz
-     * @param <T>
+     * @param clazz 网络路径/头部参数配置接口所在的Class对象
+     * @param <T>   网络路径/头部参数配置接口的类型
      * @return 公用接口对应的class
      */
-
     public <T> T getService(Class<T> clazz) {
         return new Retrofit.Builder()
                 .baseUrl(mBaseUrl)
@@ -101,6 +107,12 @@ public class RxNet {
                 .create(clazz);
     }
 
+    public static  <T> void beginRequest(Observable<HttpResult<T>> observable, Observer<T> observer) {
+        observable.map(HttpResult::getData)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(observer);
+    }
 
     public static <T> void beginRequest2(Observable<T> observable, Observer<T> observer) {
         observable.subscribeOn(Schedulers.io())
@@ -108,13 +120,11 @@ public class RxNet {
                 .subscribe(observer);
     }
 
-    public static <T> void beginRequest(Observable<HttpResult<T>> observable, Observer<T> observer) {
-        observable.map(new Function<HttpResult<T>, T>() {
-            @Override
-            public T apply(@NonNull HttpResult<T> result) throws Exception {
-                return result.getData();
-            }
-        }).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe(observer);
+    public static <T> Disposable beginRequest(Observable<HttpResult<T>> observable, Consumer<? super T> onNext, Consumer<? super Throwable> onError) {
+        return observable.map(HttpResult::getData)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(onNext, onError);
     }
 
 
@@ -124,29 +134,18 @@ public class RxNet {
                 .subscribe(onNext, onError);
     }
 
-    public static <T> Disposable beginRequest2(Observable<T> observable, Consumer<? super T> onNext) {
-        return observable.subscribeOn(Schedulers.io())
+    public static <T> Disposable beginRequest(Observable<HttpResult<T>> observable, Consumer<? super T> onNext) {
+        return observable.map(HttpResult::getData)
+                .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(onNext, new RxNetErrorConsumer(getContext()) {
                 });
     }
 
-    public static <T> Disposable beginRequest(Observable<HttpResult<T>> observable, Consumer<? super T> onNext, Consumer<? super Throwable> onError) {
-        return observable.map(new Function<HttpResult<T>, T>() {
-            @Override
-            public T apply(@NonNull HttpResult<T> result) throws Exception {
-                return result.getData();
-            }
-        }).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe(onNext, onError);
-    }
-
-    public static <T> Disposable beginRequest(Observable<HttpResult<T>> observable, Consumer<? super T> onNext) {
-        return observable.map(new Function<HttpResult<T>, T>() {
-            @Override
-            public T apply(@NonNull HttpResult<T> result) throws Exception {
-                return result.getData();
-            }
-        }).subscribeOn(Schedulers.io()).observeOn(AndroidSchedulers.mainThread()).subscribe(onNext, new RxNetErrorConsumer(getContext()) {
-        });
+    public static <T> Disposable beginRequest2(Observable<T> observable, Consumer<? super T> onNext) {
+        return observable.subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(onNext, new RxNetErrorConsumer(getContext()) {
+                });
     }
 }

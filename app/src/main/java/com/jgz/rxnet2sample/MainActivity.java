@@ -8,6 +8,9 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import com.jgz.rxnet2.RxNet;
+import com.jgz.rxnet2.consumer.RxNetErrorConsumer;
+import com.jgz.rxnet2sample.net.api.Api;
+import com.jgz.rxnet2sample.net.bean.loginData;
 
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
@@ -51,17 +54,22 @@ public class MainActivity extends AppCompatActivity {
 
 
     private void loginApp() {
+
         Consumer<loginData> onNext = data -> {
             mTextTv.setText(data.getPhone());
             mResultTv.setText(data.getNickname());
         };
 
+
         String[] keys = new String[]{"phone", "password"};
         Object[] vs = new Object[]{"13570578417", "1234567"};
         RxNet.beginRequest(Api.loginApp(keys, vs), onNext);
-
-
     }
+
+
+
+
+
 
     private void testTimeOut() {
         Consumer onNext = result -> {

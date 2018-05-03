@@ -1,4 +1,4 @@
-package com.jgz.rxnet2sample;
+package com.jgz.rxnet2sample.net.bean;
 
 /**
  * 登录App的信息

@@ -14,7 +14,6 @@ public class HttpResult<T> {
         return data;
     }
 
-
     public int getCode() {
         return code;
     }
