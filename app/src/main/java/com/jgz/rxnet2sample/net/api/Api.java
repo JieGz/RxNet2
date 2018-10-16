@@ -2,8 +2,9 @@ package com.jgz.rxnet2sample.net.api;
 
 import com.jgz.rxnet2.RxNet;
 import com.jgz.rxnet2.http.HttpResult;
-import com.jgz.rxnet2sample.net.utils.ServerUtil;
+import com.jgz.rxnet2sample.net.bean.InitData;
 import com.jgz.rxnet2sample.net.bean.loginData;
+import com.jgz.rxnet2sample.net.utils.ServerUtil;
 
 import io.reactivex.Observable;
 
@@ -20,11 +21,12 @@ public class Api {
 
     private static IConfig iConfig = RxNet.getDefault().getService(IConfig.class);
 
-    public static Observable<HttpResult<loginData>> loginApp(String[] keys, Object[] vs) {
-        return iConfig.loginApp(ServerUtil.sign(keys, vs));
-    }
 
     public static Observable<HttpResult> timeout() {
         return iConfig.timeout(ServerUtil.sign());
+    }
+
+    public static Observable<HttpResult<InitData>> getInitData() {
+        return iConfig.getInitData();
     }
 }

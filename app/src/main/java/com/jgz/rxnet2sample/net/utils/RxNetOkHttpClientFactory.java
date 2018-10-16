@@ -1,14 +1,18 @@
 package com.jgz.rxnet2sample.net.utils;
 
+import android.os.Build;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
 
+import com.google.gson.Gson;
 import com.jgz.rxnet2.cookie.CookieManager;
 import com.jgz.rxnet2.cookie.store.MemoryCookieStore;
 import com.jgz.rxnet2.interceptor.baseurl.RxNetOKHttpClient;
 import com.jgz.rxnet2.interceptor.log.HttpLogginInterceptor;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import okhttp3.Interceptor;
@@ -54,7 +58,16 @@ public class RxNetOkHttpClientFactory {
         public Response intercept(@NonNull Chain chain) throws IOException {
             Request.Builder builder = chain.request().newBuilder();
             builder.addHeader("Accept", "text/plain");
+
             if (!TextUtils.isEmpty(getToken())) builder.addHeader("Authorization", getToken());
+
+            Map<String, Object> map = new HashMap<>();
+            map.put("os", "android");
+            map.put("sysVersion", Build.VERSION.RELEASE);//系统版本
+            map.put("phoneBrand", Build.BRAND);//手机品牌
+            map.put("phoneModel", Build.MODEL);//手机型号
+            builder.addHeader("request-flag", new Gson().toJson(map));
+
             return chain.proceed(builder.build());
         }
 

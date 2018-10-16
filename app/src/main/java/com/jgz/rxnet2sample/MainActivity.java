@@ -3,14 +3,15 @@ package com.jgz.rxnet2sample;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
 import com.jgz.rxnet2.RxNet;
-import com.jgz.rxnet2.consumer.RxNetErrorConsumer;
+import com.jgz.rxnet2.http.HttpResult;
 import com.jgz.rxnet2sample.net.api.Api;
-import com.jgz.rxnet2sample.net.bean.loginData;
+import com.jgz.rxnet2sample.net.bean.InitData;
 
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
@@ -29,10 +30,10 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         mContext = this;
-        mTextBt = (Button) findViewById(R.id.bt_text);
-        mResultBt = (Button) findViewById(R.id.bt_result);
-        mTextTv = (TextView) findViewById(R.id.tv_text);
-        mResultTv = (TextView) findViewById(R.id.tv_result);
+        mTextBt = findViewById(R.id.bt_text);
+        mResultBt = findViewById(R.id.bt_result);
+        mTextTv = findViewById(R.id.tv_text);
+        mResultTv = findViewById(R.id.tv_result);
 
 
         mTextBt.setOnClickListener(new View.OnClickListener() {
@@ -55,20 +56,12 @@ public class MainActivity extends AppCompatActivity {
 
     private void loginApp() {
 
-        Consumer<loginData> onNext = data -> {
-            mTextTv.setText(data.getPhone());
-            mResultTv.setText(data.getNickname());
+        Consumer<InitData> onNext = data -> {
+            Log.d("<Je>",data.getNewVersionUrl());
         };
 
-
-        String[] keys = new String[]{"phone", "password"};
-        Object[] vs = new Object[]{"13570578417", "1234567"};
-        RxNet.beginRequest(Api.loginApp(keys, vs), onNext);
+        RxNet.beginRequest(Api.getInitData(), onNext);
     }
-
-
-
-
 
 
     private void testTimeOut() {
@@ -76,7 +69,7 @@ public class MainActivity extends AppCompatActivity {
             mTextTv.setText(result.toString());
             mResultTv.setText("onSuccess");
         };
-        RxNet.beginRequest2(Api.timeout(), onNext);
+        RxNet.beginFreeRequest(Api.timeout(), onNext);
     }
 
 
